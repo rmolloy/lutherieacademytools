@@ -1,0 +1,28 @@
+/* styles.css — base Okabe–Ito LutherieLab dark palette + resets */
+
+:root {
+  --bg: #0f1115;
+  --panel: #151922;
+  --ink: #e6e9ef;
+  --muted: #9aa4b2;
+  --accent1: #e69f00;
+  --accent2: #56b4e9;
+  --accent3: #009e73;
+  --accent4: #f0e442;
+  --accent5: #0072b2;
+  --accent6: #d55e00;
+  --accent7: #cc79a7;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+  color: var(--ink);
+  background: none;
+  border: none;
+}
+body {
+  background-color: var(--bg);
+}
