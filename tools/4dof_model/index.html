@@ -43,20 +43,20 @@
             <!-- AIR -->
             <div id="blk_air">
                 <h3 class="section">Air (Helmholtz) Mode</h3>
-                <div class="row"><label>mass_air m<sub>a</sub> (kg)</label>
-                    <div class="val" id="mass_air_val">0.000482</div>
+                <div class="row"><label>mass_air m<sub>a</sub> (g)</label>
+                    <div class="val" id="mass_air_val">0.5 g</div>
                 </div>
-                <input type="range" id="mass_air" min="0.00030" max="0.00100" step="0.000001" value="0.000482">
+                <input type="range" id="mass_air" min="0.3" max="1.0" step="0.1" value="0.5">
                 <div class="row"><label>damping_air R<sub>a</sub> (N·s/m)</label>
-                    <div class="val" id="damping_air_val">0.005</div>
+                    <div class="val" id="damping_air_val">0.0050</div>
                 </div>
                 <input type="range" id="damping_air" min="0.001" max="0.030" step="0.001" value="0.005">
                 <div class="row"><label>area_hole A<sub>h</sub> (m²)</label>
-                    <div class="val" id="area_hole_val">0.0055</div>
+                    <div class="val" id="area_hole_val">0.00550 m² (diameter 83.6 mm)</div>
                 </div>
-                <input type="range" id="area_hole" min="0.0030" max="0.0100" step="0.0001" value="0.0055">
+                <input type="range" id="area_hole" min="0.0030" max="0.0100" step="0.000001" value="0.0055">
                 <div class="row"><label>volume_air V (m³)</label>
-                    <div class="val" id="volume_air_val">0.0141</div>
+                    <div class="val" id="volume_air_val">0.0141 m³ (14.1 L)</div>
                 </div>
                 <input type="range" id="volume_air" min="0.0100" max="0.0250" step="0.0001" value="0.0141">
             </div>
@@ -64,14 +64,14 @@
             <!-- TOP -->
             <div id="blk_top">
                 <h3 class="section">Top Plate Mode</h3>
-                <div class="row"><label>mass_top m<sub>t</sub> (kg)</label>
-                    <div class="val" id="mass_top_val">0.043</div>
+                <div class="row"><label>mass_top m<sub>t</sub> (g)</label>
+                    <div class="val" id="mass_top_val">43.0 g</div>
                 </div>
-                <input type="range" id="mass_top" min="0.020" max="0.120" step="0.001" value="0.043">
+                <input type="range" id="mass_top" min="20.0" max="120.0" step="0.1" value="43.0">
                 <div class="row"><label>stiffness_top K<sub>t</sub> (N/m)</label>
-                    <div class="val" id="stiffness_top_val">42700</div>
+                    <div class="val" id="stiffness_top_val">42700 N/m</div>
                 </div>
-                <input type="range" id="stiffness_top" min="20000" max="150000" step="1000" value="42700">
+                <input type="range" id="stiffness_top" min="20000" max="150000" step="100" value="42700">
                 <div class="row"><label>damping_top R<sub>t</sub> (N·s/m)</label>
                     <div class="val" id="damping_top_val">1.5</div>
                 </div>
@@ -85,14 +85,14 @@
             <!-- BACK -->
             <div id="blk_back">
                 <h3 class="section">Back Plate Mode</h3>
-                <div class="row"><label>mass_back m<sub>b</sub> (kg)</label>
-                    <div class="val" id="mass_back_val">0.0940</div>
+                <div class="row"><label>mass_back m<sub>b</sub> (g)</label>
+                    <div class="val" id="mass_back_val">94.0 g</div>
                 </div>
-                <input type="range" id="mass_back" min="0.050" max="0.150" step="0.001" value="0.0940">
+                <input type="range" id="mass_back" min="50.0" max="150.0" step="0.1" value="94.0">
                 <div class="row"><label>stiffness_back K<sub>b</sub> (N/m)</label>
-                    <div class="val" id="stiffness_back_val">130000</div>
+                    <div class="val" id="stiffness_back_val">130000 N/m</div>
                 </div>
-                <input type="range" id="stiffness_back" min="80000" max="220000" step="1000" value="130000">
+                <input type="range" id="stiffness_back" min="80000" max="220000" step="100" value="130000">
                 <div class="row"><label>damping_back R<sub>b</sub> (N·s/m)</label>
                     <div class="val" id="damping_back_val">7.0</div>
                 </div>
@@ -106,14 +106,14 @@
             <!-- SIDES -->
             <div id="blk_sides">
                 <h3 class="section">Sides / Rim Mode</h3>
-                <div class="row"><label>mass_sides m<sub>s</sub> (kg)</label>
-                    <div class="val" id="mass_sides_val">0.800</div>
+                <div class="row"><label>mass_sides m<sub>s</sub> (g)</label>
+                    <div class="val" id="mass_sides_val">800.0 g</div>
                 </div>
-                <input type="range" id="mass_sides" min="0.100" max="1.500" step="0.010" value="0.800">
+                <input type="range" id="mass_sides" min="100.0" max="1500.0" step="0.1" value="800.0">
                 <div class="row"><label>stiffness_sides K<sub>s</sub> (N/m)</label>
-                    <div class="val" id="stiffness_sides_val">1400000</div>
+                    <div class="val" id="stiffness_sides_val">1400000 N/m</div>
                 </div>
-                <input type="range" id="stiffness_sides" min="500000" max="3000000" step="10000" value="1400000">
+                <input type="range" id="stiffness_sides" min="500000" max="3000000" step="1000" value="1400000">
                 <div class="row"><label>damping_sides R<sub>s</sub> (N·s/m)</label>
                     <div class="val" id="damping_sides_val">10.0</div>
                 </div>
