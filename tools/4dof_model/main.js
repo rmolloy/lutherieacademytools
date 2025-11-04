@@ -3,8 +3,54 @@ const COLORS = { total: "#ff9a5c", top: "#61a8ff", back: "#47d78a", air: "#b38cf
 const MASS_IDS = new Set(["mass_top","mass_back","mass_sides","mass_air"]);
 const STIFFNESS_IDS = new Set(["stiffness_top","stiffness_back","stiffness_sides"]);
 
+const ISA = {
+  T0: 288.15,            // K
+  P0: 101325,            // Pa
+  LAPSE: 0.0065,         // K/m
+  R: 287.05,             // J/(kg·K) specific gas constant for dry air
+  GAMMA: 1.4,
+  G: 9.80665
+};
+ISA.EXP = ISA.G / (ISA.R * ISA.LAPSE);
+const MAX_ATM_ALT = 10000;  // m, comfortably inside troposphere band
+const FT_PER_M = 3.28084;
+const REFERENCE_RHO = 1.205; // sea-level density used for slider baseline
+
+function deriveAtmosphere(altitudeMeters = 0, tempC = 20){
+  const h = Math.max(0, Math.min(altitudeMeters, MAX_ATM_ALT));
+  const tempK = (tempC ?? 20) + 273.15;
+  const ratio = Math.max(0.01, 1 - (ISA.LAPSE * h) / ISA.T0);
+  const pressure = ISA.P0 * Math.pow(ratio, ISA.EXP);
+  const rho = pressure / (ISA.R * tempK);
+  const c = Math.sqrt(ISA.GAMMA * ISA.R * tempK);
+  return { rho, c, pressure, tempK, tempC: tempK - 273.15, altitude: h };
+}
+
+function formatAtmosphereSummary(atm){
+  return `ρ ≈ ${atm.rho.toFixed(4)} kg/m³ • c ≈ ${atm.c.toFixed(1)} m/s • P ≈ ${(atm.pressure/100).toFixed(0)} hPa`;
+}
+
+function formatEffectiveAirMass(atm){
+  if(!atm || !Number.isFinite(atm.effectiveMassAirKg)) return null;
+  const effectiveG = atm.effectiveMassAirKg * 1000;
+  const baseG = (atm.baseMassAirKg ?? atm.effectiveMassAirKg) * 1000;
+  const densityPct = (atm.densityScale ?? 1) * 100;
+  if(Math.abs(effectiveG - baseG) < 0.0005){
+    return `${effectiveG.toFixed(2)} g`;
+  }
+  return `${effectiveG.toFixed(2)} g (slider ${baseG.toFixed(2)} g · ${densityPct.toFixed(0)}% ρ)`;
+}
+
 function formatSliderValue(id, value){
   if(Number.isNaN(value)) return "—";
+  if(id === "ambient_temp"){
+    const degF = (value * 9/5) + 32;
+    return `${value.toFixed(1)} °C (${degF.toFixed(1)} °F)`;
+  }
+  if(id === "altitude"){
+    const feet = value * FT_PER_M;
+    return `${value.toFixed(0)} m (${feet.toFixed(0)} ft)`;
+  }
   if(MASS_IDS.has(id)) return `${value.toFixed(1)} g`;
   if(id === "area_hole"){
     const diameterMm = Math.sqrt((4 * value) / Math.PI) * 1000;
@@ -157,9 +203,15 @@ function drawAxes(){
 }
 
 function line(data, color, width=2, dashed=false){
+  ctx.save();
   ctx.strokeStyle = color;
-  ctx.lineWidth = width;
-  ctx.setLineDash(dashed ? [6,4] : []);
+  ctx.lineWidth = dashed ? Math.max(1, width * 0.7) : width;
+  if(dashed){
+    ctx.globalAlpha = 0.45;
+    ctx.setLineDash([6,4]);
+  } else {
+    ctx.setLineDash([]);
+  }
   ctx.beginPath();
   let first = true;
   for(const p of data){
@@ -168,7 +220,7 @@ function line(data, color, width=2, dashed=false){
     else { ctx.lineTo(x,y); }
   }
   ctx.stroke();
-  ctx.setLineDash([]);
+  ctx.restore();
 }
 
 
@@ -216,6 +268,7 @@ function readUiInputs(){
     area_top: g("area_top"), area_back: g("area_back"),
     area_sides: g("area_sides"), area_hole: g("area_hole"),
     volume_air: g("volume_air"), driving_force: g("driving_force"),
+    ambient_temp: g("ambient_temp"), altitude: g("altitude"),
     model_order: parseInt($("model_order").value, 10),
     show_labels: $("show_labels").checked
   };
@@ -229,6 +282,24 @@ function adaptUiToSolver(raw){
       out[key] = v / 1000;
     }
   });
+  const alt = typeof out.altitude === "number" && !Number.isNaN(out.altitude) ? out.altitude : 0;
+  const temp = typeof out.ambient_temp === "number" && !Number.isNaN(out.ambient_temp) ? out.ambient_temp : 20;
+  const atm = deriveAtmosphere(alt, temp);
+  const baseMassAirKg = Number.isFinite(out.mass_air) ? out.mass_air : null;
+  if(baseMassAirKg !== null){
+    const densityScale = atm.rho / REFERENCE_RHO;
+    const effectiveMassAirKg = baseMassAirKg * densityScale;
+    out.mass_air = effectiveMassAirKg;
+    atm.baseMassAirKg = baseMassAirKg;
+    atm.effectiveMassAirKg = effectiveMassAirKg;
+    atm.densityScale = densityScale;
+  }
+
+  out.air_density = atm.rho;
+  out.speed_of_sound = atm.c;
+  out.air_pressure = atm.pressure;
+  out.air_temp_k = atm.tempK;
+  out._atm = atm;
   return out;
 }
 
@@ -239,6 +310,13 @@ function buildParams(){
 
 function render(){
   const p = buildParams();
+  if(p._atm){
+    const meta = $("atm_meta");
+    if(meta) meta.textContent = formatAtmosphereSummary(p._atm);
+    const massLabel = $("mass_air_val");
+    const massText = formatEffectiveAirMass(p._atm);
+    if(massLabel && massText) massLabel.textContent = massText;
+  }
   const R = computeResponse(p);
 
   // autoscale y to content (with sensible bounds)
@@ -306,6 +384,7 @@ function render(){
 
 /* --------------------- UI hooks --------------------- */
 const ids = [
+  "ambient_temp","altitude",
   "mass_top","mass_back","mass_sides","mass_air",
   "stiffness_top","stiffness_back","stiffness_sides",
   "damping_top","damping_back","damping_sides","damping_air",
@@ -353,7 +432,7 @@ $("btn_reset").addEventListener("click", ()=>{
   document.querySelectorAll("input[type=range]").forEach(e => e.value = e.defaultValue || e.value);
   $("model_order").value = "4";
   $("show_labels").checked = true;
-  ["mass_top","mass_back","mass_sides","mass_air","stiffness_top","stiffness_back","stiffness_sides","damping_top","damping_back","damping_sides","damping_air","area_top","area_back","area_sides","area_hole","volume_air","driving_force"].forEach(id=>{
+  ["ambient_temp","altitude","mass_top","mass_back","mass_sides","mass_air","stiffness_top","stiffness_back","stiffness_sides","damping_top","damping_back","damping_sides","damping_air","area_top","area_back","area_sides","area_hole","volume_air","driving_force"].forEach(id=>{
     const el = $(id), lab = $(`${id}_val`);
     if(el && lab) lab.textContent = formatSliderValue(id, parseFloat(el.value));
   });
