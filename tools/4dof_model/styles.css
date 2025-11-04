@@ -10,14 +10,20 @@ main {
 .plot-panel { grid-area: plot; }
 .controls-panel { grid-area: controls; }
 
+.control-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-top: 16px;
+}
+
 .control-card {
   border: 1px solid #222a3a;
   border-radius: 10px;
   padding: 10px 12px;
-  margin: 14px 0;
   background: #111522;
+  height: 100%;
 }
-.control-card:first-of-type { margin-top: 10px; }
 .control-card summary {
   cursor: pointer;
   list-style: none;

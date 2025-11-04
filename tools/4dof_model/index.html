@@ -40,11 +40,12 @@
             <div class="small">The solver and visible controls adapt to the chosen order. Peaks are auto‑labeled by
                 dominant subsystem.</div>
 
-            <!-- AIR -->
-            <details id="blk_air" class="control-card" open>
-                <summary>Air (Helmholtz) Mode</summary>
-                <div class="row"><label>mass_air m<sub>a</sub> (g)</label>
-                    <div class="val" id="mass_air_val">0.5 g</div>
+            <div class="control-grid">
+                <!-- AIR -->
+                <details id="blk_air" class="control-card" open>
+                    <summary>Air (Helmholtz) Mode</summary>
+                    <div class="row"><label>mass_air m<sub>a</sub> (g)</label>
+                        <div class="val" id="mass_air_val">0.5 g</div>
                 </div>
                 <input type="range" id="mass_air" min="0.3" max="1.0" step="0.1" value="0.5">
                 <div class="row"><label>damping_air R<sub>a</sub> (N·s/m)</label>
@@ -58,14 +59,14 @@
                 <div class="row"><label>volume_air V (m³)</label>
                     <div class="val" id="volume_air_val">0.0141 m³ (14.1 L)</div>
                 </div>
-                <input type="range" id="volume_air" min="0.0100" max="0.0250" step="0.0001" value="0.0141">
-            </details>
+                    <input type="range" id="volume_air" min="0.0100" max="0.0250" step="0.0001" value="0.0141">
+                </details>
 
-            <!-- TOP -->
-            <details id="blk_top" class="control-card" open>
-                <summary>Top Plate Mode</summary>
-                <div class="row"><label>mass_top m<sub>t</sub> (g)</label>
-                    <div class="val" id="mass_top_val">43.0 g</div>
+                <!-- TOP -->
+                <details id="blk_top" class="control-card" open>
+                    <summary>Top Plate Mode</summary>
+                    <div class="row"><label>mass_top m<sub>t</sub> (g)</label>
+                        <div class="val" id="mass_top_val">43.0 g</div>
                 </div>
                 <input type="range" id="mass_top" min="20.0" max="120.0" step="0.1" value="43.0">
                 <div class="row"><label>stiffness_top K<sub>t</sub> (N/m)</label>
@@ -79,14 +80,14 @@
                 <div class="row"><label>area_top A<sub>t</sub> (m²)</label>
                     <div class="val" id="area_top_val">0.0390</div>
                 </div>
-                <input type="range" id="area_top" min="0.0300" max="0.0600" step="0.0005" value="0.0390">
-            </details>
+                    <input type="range" id="area_top" min="0.0300" max="0.0600" step="0.0005" value="0.0390">
+                </details>
 
-            <!-- BACK -->
-            <details id="blk_back" class="control-card" open>
-                <summary>Back Plate Mode</summary>
-                <div class="row"><label>mass_back m<sub>b</sub> (g)</label>
-                    <div class="val" id="mass_back_val">94.0 g</div>
+                <!-- BACK -->
+                <details id="blk_back" class="control-card" open>
+                    <summary>Back Plate Mode</summary>
+                    <div class="row"><label>mass_back m<sub>b</sub> (g)</label>
+                        <div class="val" id="mass_back_val">94.0 g</div>
                 </div>
                 <input type="range" id="mass_back" min="50.0" max="150.0" step="0.1" value="94.0">
                 <div class="row"><label>stiffness_back K<sub>b</sub> (N/m)</label>
@@ -100,14 +101,14 @@
                 <div class="row"><label>area_back A<sub>b</sub> (m²)</label>
                     <div class="val" id="area_back_val">0.0400</div>
                 </div>
-                <input type="range" id="area_back" min="0.0300" max="0.0600" step="0.0005" value="0.0400">
-            </details>
+                    <input type="range" id="area_back" min="0.0300" max="0.0600" step="0.0005" value="0.0400">
+                </details>
 
-            <!-- SIDES -->
-            <details id="blk_sides" class="control-card" open>
-                <summary>Sides / Rim Mode</summary>
-                <div class="row"><label>mass_sides m<sub>s</sub> (g)</label>
-                    <div class="val" id="mass_sides_val">800.0 g</div>
+                <!-- SIDES -->
+                <details id="blk_sides" class="control-card" open>
+                    <summary>Sides / Rim Mode</summary>
+                    <div class="row"><label>mass_sides m<sub>s</sub> (g)</label>
+                        <div class="val" id="mass_sides_val">800.0 g</div>
                 </div>
                 <input type="range" id="mass_sides" min="100.0" max="1500.0" step="0.1" value="800.0">
                 <div class="row"><label>stiffness_sides K<sub>s</sub> (N/m)</label>
@@ -118,11 +119,12 @@
                     <div class="val" id="damping_sides_val">10.0</div>
                 </div>
                 <input type="range" id="damping_sides" min="1.0" max="80.0" step="1.0" value="10.0">
-                <div class="row"><label>area_sides A<sub>s</sub> (m²)</label>
-                    <div class="val" id="area_sides_val">0.0250</div>
-                </div>
-                <input type="range" id="area_sides" min="0.0100" max="0.0600" step="0.0005" value="0.0250">
-            </details>
+                    <div class="row"><label>area_sides A<sub>s</sub> (m²)</label>
+                        <div class="val" id="area_sides_val">0.0250</div>
+                    </div>
+                    <input type="range" id="area_sides" min="0.0100" max="0.0600" step="0.0005" value="0.0250">
+                </details>
+            </div>
 
             <!-- DRIVER -->
             <h3 class="section">Driving Force</h3>
