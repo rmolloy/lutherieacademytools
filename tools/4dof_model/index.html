@@ -41,13 +41,31 @@
                 dominant subsystem.</div>
 
             <div class="control-grid">
+                <!-- ENVIRONMENTAL -->
+                <details id="blk_environment" class="control-card" open>
+                    <summary>Environmental</summary>
+                    <div class="row"><label>ambient_temp (°C)</label>
+                        <div class="val" id="ambient_temp_val">20.0 °C</div>
+                    </div>
+                    <input type="range" id="ambient_temp" min="-10" max="40" step="0.5" value="20">
+                    <div class="row"><label>altitude (m)</label>
+                        <div class="val" id="altitude_val">0 m (0 ft)</div>
+                    </div>
+                    <input type="range" id="altitude" min="0" max="4000" step="10" value="0">
+                    <div class="small" id="atm_meta">ρ ≈ 1.205 kg/m³ • c ≈ 340.0 m/s</div>
+                    <div class="row" style="margin-top:10px;"><label>driving_force F (N)</label>
+                        <div class="val" id="driving_force_val">0.40</div>
+                    </div>
+                    <input type="range" id="driving_force" min="0.10" max="1.00" step="0.01" value="0.40">
+                </details>
+
                 <!-- AIR -->
                 <details id="blk_air" class="control-card" open>
                     <summary>Air (Helmholtz) Mode</summary>
                     <div class="row"><label>mass_air m<sub>a</sub> (g)</label>
-                        <div class="val" id="mass_air_val">0.5 g</div>
-                </div>
-                <input type="range" id="mass_air" min="0.3" max="1.0" step="0.1" value="0.5">
+                        <div class="val" id="mass_air_val">0.50 g</div>
+                    </div>
+                    <input type="range" id="mass_air" min="0.30" max="1.00" step="0.01" value="0.50">
                 <div class="row"><label>damping_air R<sub>a</sub> (N·s/m)</label>
                     <div class="val" id="damping_air_val">0.0050</div>
                 </div>
@@ -125,13 +143,6 @@
                     <input type="range" id="area_sides" min="0.0100" max="0.0600" step="0.0005" value="0.0250">
                 </details>
             </div>
-
-            <!-- DRIVER -->
-            <h3 class="section">Driving Force</h3>
-            <div class="row"><label>driving_force F (N)</label>
-                <div class="val" id="driving_force_val">0.40</div>
-            </div>
-            <input type="range" id="driving_force" min="0.10" max="1.00" step="0.01" value="0.40">
 
             <button id="btn_reset">Reset Defaults</button>
             <div class="small">
