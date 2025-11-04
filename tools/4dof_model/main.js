@@ -43,7 +43,10 @@ function formatEffectiveAirMass(atm){
 
 function formatSliderValue(id, value){
   if(Number.isNaN(value)) return "—";
-  if(id === "ambient_temp") return `${value.toFixed(1)} °C`;
+  if(id === "ambient_temp"){
+    const degF = (value * 9/5) + 32;
+    return `${value.toFixed(1)} °C (${degF.toFixed(1)} °F)`;
+  }
   if(id === "altitude"){
     const feet = value * FT_PER_M;
     return `${value.toFixed(0)} m (${feet.toFixed(0)} ft)`;
