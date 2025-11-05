@@ -84,6 +84,8 @@
     const deltaBar = document.getElementById(`${baseId}_whatif_delta`);
     const label = document.getElementById(`${baseId}_whatif_val`);
     if(!base || !overlay || !deltaBar || !label) return;
+    const valueEl = label.querySelector(".whatif-val__value");
+    const deltaEl = label.querySelector(".whatif-val__delta");
 
     const min = parseFloat(base.min ?? overlay.min ?? 0);
     const max = parseFloat(base.max ?? overlay.max ?? 1);
@@ -104,7 +106,13 @@
     if(!isActive){
       overlay.style.background = "transparent";
       deltaBar.style.display = "none";
-      label.textContent = "What-If: off";
+      if(valueEl){
+        valueEl.textContent = "Off";
+        valueEl.classList.add("is-off");
+      }
+      if(deltaEl){
+        deltaEl.textContent = "Δ —";
+      }
       return;
     }
 
@@ -133,7 +141,13 @@
     else if(step < 0.01) precision = 3;
     else precision = 2;
     const deltaText = `${delta >= 0 ? "+" : ""}${delta.toFixed(precision)}`;
-    label.innerHTML = `What-If: ${formatted} <span class="delta">Δ ${deltaText}</span>`;
+    if(valueEl){
+      valueEl.textContent = formatted;
+      valueEl.classList.remove("is-off");
+    }
+    if(deltaEl){
+      deltaEl.innerHTML = `Δ <span class="delta">${deltaText}</span>`;
+    }
   }
 
   const sliders = document.querySelectorAll(".controls-panel input[type=range]");
@@ -181,8 +195,13 @@
     const info = document.createElement("div");
     info.className = "whatif-val";
     info.id = `${base.id}_whatif_val`;
-    info.textContent = "What-If: off";
-    wrap.insertAdjacentElement("afterend", info);
+    info.innerHTML = `
+      <div class="whatif-val__row">
+        <span class="whatif-val__delta">Δ —</span>
+        <span class="whatif-val__value is-off">Off</span>
+      </div>
+    `;
+    wrap.insertAdjacentElement("beforebegin", info);
     base.addEventListener("input", ()=>updateSliderVisual(base.id));
   });
 

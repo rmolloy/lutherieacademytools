@@ -151,14 +151,34 @@ body.whatif-mode .dual-slider__delta {
   display: none;
   font-size: 12px;
   color: var(--muted);
-  margin: 4px 0 0;
+  margin: 4px 0 6px;
   line-height: 1.4;
 }
 body.whatif-mode .whatif-val {
   display: block;
 }
-.whatif-val .delta {
+.whatif-val__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.whatif-val__delta {
+  font-size: 12px;
+  color: var(--muted);
+}
+.whatif-val__delta .delta {
   color: var(--orange);
-  margin-left: 6px;
   font-weight: 600;
+}
+.whatif-val__value {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--orange);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.whatif-val__value.is-off {
+  color: var(--muted);
 }
