@@ -51,25 +51,11 @@
     const baseId = slider.dataset.baseId;
     if(Math.abs(slider.value - offValue) < EPS){
       slider.classList.remove("active");
-      const info = document.getElementById(`${baseId}_whatif_val`);
-      if(info) info.textContent = "What-If: off";
       updateSliderVisual(baseId);
       return;
     }
     slider.classList.add("active");
     updateSliderVisual(baseId);
-  }
-
-  function updateModeStateFromSliders(){
-    const active = Array.from(document.querySelectorAll(".dual-slider__overlay"))
-      .some(slider => slider.classList.contains("active"));
-    if(!active){
-      toggle.checked = false;
-      document.body.classList.remove("whatif-mode");
-      resetBtn.disabled = true;
-      refreshSliders();
-      if(window.render) window.render();
-    }
   }
 
   function refreshSliders(){
@@ -182,7 +168,6 @@
       const epsilon = Math.max(0.000001, (parseFloat(overlay.step) || 0.0001) * 0.5);
       if(Math.abs(current - offValue) <= epsilon){
         setOverlayValue(overlay, offValue);
-        updateModeStateFromSliders();
         if(window.render) window.render();
         return;
       }
