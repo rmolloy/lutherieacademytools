@@ -13,7 +13,7 @@ It’s designed as the forward-model foundation for the **Delta-Recipe Solver** 
 3. Explains each move’s rationale, expected frequency shifts, and trade-offs.
 
 > Public disclosure date: **2025-11-05**  
-> Licence: MIT — attribution required (“© Rick Molloy / Celestial Instruments”).
+> Licence: MIT — attribution required (“© Rick Molloy”).
 
 ### Screenshot
 *(Example UI — baseline vs. What-If delta)*  
