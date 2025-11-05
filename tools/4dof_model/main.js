@@ -39,6 +39,12 @@ function buildSliderMeta(){
 }
 const SLIDER_META = buildSliderMeta();
 
+function getAdjustableIds(raw){
+  return FIT_PARAM_IDS.filter(id=>{
+    return typeof raw[id] === "number" && !Number.isNaN(raw[id]) && SLIDER_META[id];
+  });
+}
+
 const ISA = {
   T0: 288.15,            // K
   P0: 101325,            // Pa
@@ -451,6 +457,32 @@ function applyRawValues(raw){
   render();
 }
 
+function ensureWhatIfModeOn(){
+  const toggle = $("whatif_toggle");
+  if(!toggle) return;
+  if(!toggle.checked){
+    toggle.checked = true;
+    toggle.dispatchEvent(new Event("change", { bubbles: true }));
+  } else {
+    document.body.classList.add("whatif-mode");
+  }
+}
+
+function applyWhatIfRawValues(raw){
+  ensureWhatIfModeOn();
+  let applied = false;
+  FIT_PARAM_IDS.forEach(id=>{
+    if(!Number.isFinite(raw[id])) return;
+    const overlay = document.getElementById(`${id}_whatif`);
+    if(!overlay) return;
+    const next = clampToSlider(id, raw[id]);
+    overlay.value = next;
+    overlay.dispatchEvent(new Event("input", { bubbles: true }));
+    applied = true;
+  });
+  if(!applied) throw new Error("No What-If sliders available to adjust.");
+}
+
 function collectFitTargets(form){
   const read = id=>{
     const el = form.querySelector(`#${id}`);
@@ -515,19 +547,14 @@ function evaluateFitCost(raw, targets){
   return evaluateFitDetail(raw, targets).cost;
 }
 
-function fitBaselineParameters(targets, { maxIter=80 } = {}){
-  const raw = readUiInputs();
-  const adjustable = FIT_PARAM_IDS.filter(id=>{
-    return typeof raw[id] === "number" && !Number.isNaN(raw[id]) && SLIDER_META[id];
-  });
-  if(adjustable.length === 0) throw new Error("No adjustable parameters available.");
-
-  let best = { ...raw };
+function runCoordinateDescent(initialRaw, adjustableIds, targets, { maxIter=80 } = {}){
+  if(!adjustableIds.length) throw new Error("No adjustable parameters available.");
+  let best = { ...initialRaw };
   let bestCost = evaluateFitCost(best, targets);
   if(!Number.isFinite(bestCost)) bestCost = 1e6;
 
   const stepSizes = {};
-  adjustable.forEach(id=>{
+  adjustableIds.forEach(id=>{
     const meta = SLIDER_META[id];
     const span = (Number.isFinite(meta.max) && Number.isFinite(meta.min))
       ? Math.max(meta.max - meta.min, Math.abs(best[id]) || 1)
@@ -538,7 +565,7 @@ function fitBaselineParameters(targets, { maxIter=80 } = {}){
   let decay = 1;
   for(let iter=0; iter<maxIter; iter++){
     let improved = false;
-    for(const id of adjustable){
+    for(const id of adjustableIds){
       const meta = SLIDER_META[id];
       const baseStep = Math.max(stepSizes[id] * decay, meta.step || 0.0001);
       const tryDelta = delta =>{
@@ -565,12 +592,32 @@ function fitBaselineParameters(targets, { maxIter=80 } = {}){
   return { raw: best, evaluation: evaluateFitDetail(best, targets) };
 }
 
-function initFitBaselineUi(){
+function fitBaselineParameters(targets, opts={}){
+  const raw = readUiInputs();
+  const adjustable = getAdjustableIds(raw);
+  return runCoordinateDescent(raw, adjustable, targets, opts);
+}
+
+function fitWhatIfParameters(targets, opts={}){
+  const baseRaw = readUiInputs();
+  const whatRaw = readWhatIfRaw(baseRaw);
+  const initial = whatRaw ? whatRaw : { ...baseRaw };
+  const adjustable = getAdjustableIds(initial);
+  const result = runCoordinateDescent(initial, adjustable, targets, opts);
+  return { ...result, baseRaw };
+}
+
+function initFitAssistUi(){
   const modal = $("fit_modal");
-  const btn = $("btn_fit_baseline");
+  const baselineBtn = $("btn_fit_baseline");
+  const whatIfBtn = $("btn_fit_whatif");
   const form = $("fit_form");
   const status = $("fit_status");
-  if(!modal || !btn || !form || !status) return;
+  if(!modal || !form || !status || (!baselineBtn && !whatIfBtn)) return;
+
+  const titleEl = modal.querySelector("header h2");
+  const submitBtn = form.querySelector("button[type=submit]");
+  let mode = "baseline";
 
   const closeButtons = modal.querySelectorAll("[data-fit-close]");
   const closeModal = ()=>{
@@ -579,13 +626,20 @@ function initFitBaselineUi(){
     status.textContent = "";
     form.reset();
   };
-  const openModal = ()=>{
+  const setMode = nextMode =>{
+    mode = nextMode;
+    if(titleEl) titleEl.textContent = mode === "whatif" ? "Fit What-If" : "Fit Baseline";
+    if(submitBtn) submitBtn.textContent = mode === "whatif" ? "Solve What-If" : "Solve";
+  };
+  const openModal = nextMode =>{
+    setMode(nextMode);
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden","false");
     status.textContent = "";
   };
 
-  btn.addEventListener("click", openModal);
+  baselineBtn?.addEventListener("click", ()=>openModal("baseline"));
+  whatIfBtn?.addEventListener("click", ()=>openModal("whatif"));
   closeButtons.forEach(el=>el.addEventListener("click", closeModal));
   modal.addEventListener("click", evt=>{
     if(evt.target === modal || evt.target.classList.contains("fit-modal__backdrop")) closeModal();
@@ -609,19 +663,21 @@ function initFitBaselineUi(){
     toggleDisabled(true);
     await new Promise(requestAnimationFrame);
     try{
-      const result = fitBaselineParameters(targets, { maxIter: 90 });
-      applyRawValues(result.raw);
-      const rms = (()=> {
-        const diffs = result.evaluation.freqErrors.filter(v=>Number.isFinite(v));
-        if(!diffs.length) return null;
-        return Math.sqrt(diffs.reduce((sum,v)=>sum + v*v, 0) / diffs.length);
-      })();
+      const result = mode === "whatif"
+        ? fitWhatIfParameters(targets, { maxIter: 90 })
+        : fitBaselineParameters(targets, { maxIter: 90 });
+
+      if(mode === "whatif") applyWhatIfRawValues(result.raw);
+      else applyRawValues(result.raw);
+
+      const diffs = result.evaluation.freqErrors.filter(v=>Number.isFinite(v));
+      const rms = diffs.length ? Math.sqrt(diffs.reduce((sum,v)=>sum + v*v, 0) / diffs.length) : null;
       status.textContent = rms != null
         ? `Fit complete. RMS Δf ≈ ${rms.toFixed(2)} Hz.`
         : "Fit complete.";
     } catch(err){
       console.error(err);
-      status.textContent = err?.message || "Unable to fit baseline.";
+      status.textContent = err?.message || (mode === "whatif" ? "Unable to fit What-If." : "Unable to fit baseline.");
     } finally {
       toggleDisabled(false);
     }
@@ -734,7 +790,7 @@ function render(){
   }
 }
 
-initFitBaselineUi();
+initFitAssistUi();
 
 /* --------------------- UI hooks --------------------- */
 CONTROL_IDS.forEach(id=>{
