@@ -38,6 +38,26 @@ function buildSliderMeta(){
   return meta;
 }
 const SLIDER_META = buildSliderMeta();
+const WHATIF_SUMMARY_FIELDS = [
+  { id: "mass_top", label: "top plate mass", unit: "g", precision: 1, threshold: 0.1 },
+  { id: "stiffness_top", label: "top plate stiffness", unit: "N/m", precision: 0, threshold: 50 },
+  { id: "mass_back", label: "back plate mass", unit: "g", precision: 1, threshold: 0.1 },
+  { id: "stiffness_back", label: "back plate stiffness", unit: "N/m", precision: 0, threshold: 50 },
+  { id: "volume_air", label: "cavity volume", unit: "m³", precision: 4, threshold: 0.00005 },
+  {
+    id: "area_hole",
+    label: "soundhole diameter",
+    unit: "mm",
+    precision: 1,
+    threshold: 0.1,
+    transform: areaToDiameterMm,
+    extra: (baseVal, targetVal)=>{
+      const deltaArea = targetVal - baseVal;
+      const sign = deltaArea >= 0 ? "+" : "-";
+      return ` (${sign}${Math.abs(deltaArea).toFixed(5)} m²)`;
+    }
+  }
+];
 
 function getAdjustableIds(raw){
   return FIT_PARAM_IDS.filter(id=>{
@@ -105,6 +125,11 @@ function formatSliderValue(id, value){
   }
   if(STIFFNESS_IDS.has(id)) return `${value.toFixed(0)} N/m`;
   return fmt(value);
+}
+
+function areaToDiameterMm(area){
+  if(!Number.isFinite(area) || area <= 0) return NaN;
+  return Math.sqrt((4 * area) / Math.PI) * 1000;
 }
 
 function isWhatIfPage(){
@@ -483,6 +508,51 @@ function applyWhatIfRawValues(raw){
   if(!applied) throw new Error("No What-If sliders available to adjust.");
 }
 
+function describeDeltaLine(field, baseRaw, targetRaw){
+  const baseVal = baseRaw[field.id];
+  const targetVal = targetRaw[field.id];
+  if(!Number.isFinite(baseVal) || !Number.isFinite(targetVal)) return null;
+  let base = baseVal;
+  let target = targetVal;
+  if(typeof field.transform === "function"){
+    base = field.transform(baseVal);
+    target = field.transform(targetVal);
+  }
+  if(!Number.isFinite(base) || !Number.isFinite(target)) return null;
+  const delta = target - base;
+  if(Math.abs(delta) < (field.threshold ?? 0)) return null;
+  const dir = delta >= 0 ? "Increase" : "Decrease";
+  const precision = typeof field.precision === "number" ? field.precision : 2;
+  const amount = Math.abs(delta).toFixed(precision);
+  let line = `${dir} ${field.label} by ${amount} ${field.unit}`;
+  if(field.extra) line += field.extra(baseVal, targetVal, delta) || "";
+  return line;
+}
+
+function buildWhatIfSummary(baseRaw, targetRaw){
+  if(!baseRaw || !targetRaw) return null;
+  const lines = WHATIF_SUMMARY_FIELDS
+    .map(field => describeDeltaLine(field, baseRaw, targetRaw))
+    .filter(Boolean);
+  return lines.length ? lines : null;
+}
+
+function updateWhatIfSummary(lines){
+  const box = $("whatif_summary");
+  if(!box) return;
+  const body = box.querySelector(".delta-summary__body") || box;
+  if(!lines || !lines.length){
+    body.textContent = "Run Solve Targets to see suggested adjustments.";
+    box.classList.remove("has-content");
+    return;
+  }
+  const html = `<ul>${lines.map(line=>`<li>${line}</li>`).join("")}</ul>`;
+  body.innerHTML = html;
+  box.classList.add("has-content");
+}
+
+window.setWhatIfSummary = lines => updateWhatIfSummary(lines);
+
 function collectFitTargets(form){
   const read = id=>{
     const el = form.querySelector(`#${id}`);
@@ -547,7 +617,7 @@ function evaluateFitCost(raw, targets){
   return evaluateFitDetail(raw, targets).cost;
 }
 
-function runCoordinateDescent(initialRaw, adjustableIds, targets, { maxIter=80 } = {}){
+function runCoordinateDescent(initialRaw, adjustableIds, targets, { maxIter=80, clampDirection } = {}){
   if(!adjustableIds.length) throw new Error("No adjustable parameters available.");
   let best = { ...initialRaw };
   let bestCost = evaluateFitCost(best, targets);
@@ -569,6 +639,7 @@ function runCoordinateDescent(initialRaw, adjustableIds, targets, { maxIter=80 }
       const meta = SLIDER_META[id];
       const baseStep = Math.max(stepSizes[id] * decay, meta.step || 0.0001);
       const tryDelta = delta =>{
+        if(clampDirection && !clampDirection(id, delta)) return null;
         const candidate = { ...best, [id]: clampToSlider(id, best[id] + delta) };
         const cost = evaluateFitCost(candidate, targets);
         return { candidate, cost };
@@ -576,8 +647,8 @@ function runCoordinateDescent(initialRaw, adjustableIds, targets, { maxIter=80 }
       const plus = tryDelta(baseStep);
       const minus = tryDelta(-baseStep);
       let next = null;
-      if(plus.cost < bestCost) next = plus;
-      if(minus.cost < (next ? next.cost : bestCost)) next = minus;
+      if(plus && plus.cost < bestCost) next = plus;
+      if(minus && minus.cost < ((next && next.cost) || bestCost)) next = minus;
       if(next){
         best = next.candidate;
         bestCost = next.cost;
@@ -598,12 +669,22 @@ function fitBaselineParameters(targets, opts={}){
   return runCoordinateDescent(raw, adjustable, targets, opts);
 }
 
+function buildDirectionClamp(options){
+  if(!options || !options.restrictSimple) return null;
+  const increaseOnly = new Set(["mass_top","mass_back"]);
+  return (id, delta)=>{
+    if(!increaseOnly.has(id)) return false;
+    return delta >= 0; // only allow increases on the guarded set
+  };
+}
+
 function fitWhatIfParameters(targets, opts={}){
   const baseRaw = readUiInputs();
   const whatRaw = readWhatIfRaw(baseRaw);
   const initial = whatRaw ? whatRaw : { ...baseRaw };
   const adjustable = getAdjustableIds(initial);
-  const result = runCoordinateDescent(initial, adjustable, targets, opts);
+  const clampDirection = buildDirectionClamp(opts);
+  const result = runCoordinateDescent(initial, adjustable, targets, { ...opts, clampDirection });
   return { ...result, baseRaw };
 }
 
@@ -628,8 +709,8 @@ function initFitAssistUi(){
   };
   const setMode = nextMode =>{
     mode = nextMode;
-    if(titleEl) titleEl.textContent = mode === "whatif" ? "Fit What-If" : "Fit Baseline";
-    if(submitBtn) submitBtn.textContent = mode === "whatif" ? "Solve What-If" : "Solve";
+    if(titleEl) titleEl.textContent = mode === "whatif" ? "Solve Targets" : "Fit Baseline";
+    if(submitBtn) submitBtn.textContent = mode === "whatif" ? "Compute Recipe" : "Solve";
   };
   const openModal = nextMode =>{
     setMode(nextMode);
@@ -645,6 +726,21 @@ function initFitAssistUi(){
     if(evt.target === modal || evt.target.classList.contains("fit-modal__backdrop")) closeModal();
   });
 
+  const resetBtn = modal.querySelector("[data-fit-reset]");
+  if(resetBtn){
+    resetBtn.addEventListener("click",()=>{
+      if(mode === "whatif"){
+        if(window.resetWhatIfOverlays) window.resetWhatIfOverlays();
+        else document.getElementById("btn_reset_whatif")?.click();
+      } else {
+        document.getElementById("btn_reset")?.click();
+      }
+      status.textContent = mode === "whatif"
+        ? "What-If sliders reset."
+        : "Baseline reset to defaults.";
+    });
+  }
+
   const toggleDisabled = disabled=>{
     form.querySelectorAll("input,button").forEach(el=>{
       if(el.dataset.fitClose !== undefined) return;
@@ -659,16 +755,23 @@ function initFitAssistUi(){
       status.textContent = "Enter at least one target to fit.";
       return;
     }
+    const restrictSimple = Boolean($("fit_restrict_simple")?.checked);
     status.textContent = "Solving…";
     toggleDisabled(true);
     await new Promise(requestAnimationFrame);
     try{
       const result = mode === "whatif"
-        ? fitWhatIfParameters(targets, { maxIter: 90 })
+        ? fitWhatIfParameters(targets, { maxIter: 90, restrictSimple })
         : fitBaselineParameters(targets, { maxIter: 90 });
 
-      if(mode === "whatif") applyWhatIfRawValues(result.raw);
-      else applyRawValues(result.raw);
+      if(mode === "whatif"){
+        applyWhatIfRawValues(result.raw);
+        const summary = buildWhatIfSummary(result.baseRaw, result.raw);
+        setWhatIfSummary(summary);
+      } else {
+        applyRawValues(result.raw);
+        setWhatIfSummary(null);
+      }
 
       const diffs = result.evaluation.freqErrors.filter(v=>Number.isFinite(v));
       const rms = diffs.length ? Math.sqrt(diffs.reduce((sum,v)=>sum + v*v, 0) / diffs.length) : null;

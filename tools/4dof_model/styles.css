@@ -68,6 +68,30 @@ main {
   margin-top: 12px;
 }
 
+.delta-summary {
+  margin-top: 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--panel) 80%, var(--bg));
+}
+.delta-summary h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.delta-summary__body {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.delta-summary__body ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.delta-summary__body li { margin-bottom: 4px; }
+
 .dual-slider {
   position: relative;
   margin: 8px 0 22px;
@@ -178,6 +202,11 @@ body.whatif-mode .whatif-val {
   color: var(--orange);
   font-weight: 600;
 }
+.delta-label {
+  font-weight: 600;
+  cursor: help;
+  border-bottom: 1px dotted var(--muted);
+}
 .whatif-val__value {
   display: block;
   font-size: 14px;
@@ -257,6 +286,15 @@ body.whatif-mode .whatif-val {
 }
 .fit-status {
   min-height: 18px;
+  margin-bottom: 12px;
+}
+.fit-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
   margin-bottom: 12px;
 }
 .fit-actions {

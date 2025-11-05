@@ -38,8 +38,17 @@
                 <span class="badge">Force target: Air (1DOF) • Top (2–4DOF)</span>
             </div>
             <div class="row whatif-toggle-row">
-                <label><input type="checkbox" id="whatif_toggle"> Enable What-If Mode</label>
-                <button id="btn_reset_whatif" class="ghost" disabled>Reset What-If</button>
+                <label><input type="checkbox" id="whatif_toggle"> Compare Changes</label>
+                <button id="btn_reset_whatif"disabled>Reset What-If</button>
+            </div>
+            <div class="action-row">
+                <button id="btn_fit_baseline">Fit Baseline</button>
+                <button id="btn_fit_whatif">Solve Targets</button>
+                <button id="btn_reset">Start Over</button>
+            </div>
+            <div id="whatif_summary" class="delta-summary">
+                <h3>What-If Recipe</h3>
+                <div class="delta-summary__body muted">Run Solve Targets to see suggested adjustments.</div>
             </div>
             <div class="small">The solver and visible controls adapt to the chosen order. Peaks are auto‑labeled by
                 dominant subsystem.</div>
@@ -148,11 +157,6 @@
                 </details>
             </div>
 
-            <div class="action-row">
-                <button id="btn_fit_baseline" class="ghost">Fit Baseline…</button>
-                <button id="btn_fit_whatif" class="ghost">Fit What-If…</button>
-                <button id="btn_reset">Reset Defaults</button>
-            </div>
             <div class="small">
                 Tip: the model is coupled. Peaks shift together as you change air volume, plate stiffness, or effective
                 areas.
@@ -206,7 +210,12 @@
                     </label>
                 </div>
                 <div id="fit_status" class="fit-status small muted"></div>
+                <label class="fit-option">
+                    <input type="checkbox" id="fit_restrict_simple" checked>
+                    Best fit while only enlarging soundhole, increasing top mass, and increasing back mass.
+                </label>
                 <div class="fit-actions">
+                    <button type="button" class="ghost" data-fit-reset>Reset</button>
                     <button type="button" class="ghost" data-fit-close>Cancel</button>
                     <button type="submit">Solve</button>
                 </div>
