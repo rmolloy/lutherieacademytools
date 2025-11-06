@@ -132,6 +132,12 @@ function areaToDiameterMm(area){
   return Math.sqrt((4 * area) / Math.PI) * 1000;
 }
 
+function diameterMmToArea(diamMm){
+  if(!Number.isFinite(diamMm) || diamMm <= 0) return NaN;
+  const meters = diamMm / 1000;
+  return Math.PI * Math.pow(meters, 2) / 4;
+}
+
 function isWhatIfPage(){
   return document.body?.dataset?.palette === "whatif";
 }
@@ -566,13 +572,18 @@ function collectFitTargets(form){
     stiffness_top: read("fit_stiffness_top"),
     mass_back: read("fit_mass_back"),
     stiffness_back: read("fit_stiffness_back"),
-    volume_air: read("fit_volume_air")
+    volume_air: read("fit_volume_air"),
+    area_hole_diam: read("fit_area_hole_diam"),
+    area_hole: (()=>{
+      const diam = read("fit_area_hole_diam");
+      return Number.isFinite(diam) ? diameterMmToArea(diam) : null;
+    })()
   };
 }
 
 function hasFitTargets(targets){
   if(targets.freqs && targets.freqs.some(v=>Number.isFinite(v))) return true;
-  return ["mass_top","stiffness_top","mass_back","stiffness_back","volume_air"]
+  return ["mass_top","stiffness_top","mass_back","stiffness_back","volume_air","area_hole"]
     .some(key => Number.isFinite(targets[key]));
 }
 
@@ -609,6 +620,7 @@ function evaluateFitDetail(raw, targets){
   if(Number.isFinite(targets.mass_back)) cost += sqRelative(raw.mass_back, targets.mass_back);
   if(Number.isFinite(targets.stiffness_back)) cost += sqRelative(raw.stiffness_back, targets.stiffness_back);
   if(Number.isFinite(targets.volume_air)) cost += sqRelative(raw.volume_air, targets.volume_air);
+  if(Number.isFinite(targets.area_hole)) cost += sqRelative(raw.area_hole, targets.area_hole);
 
   return { cost, peaks, freqErrors };
 }
@@ -672,9 +684,11 @@ function fitBaselineParameters(targets, opts={}){
 function buildDirectionClamp(options){
   if(!options || !options.restrictSimple) return null;
   const increaseOnly = new Set(["mass_top","mass_back"]);
+  const allowed = new Set(["mass_top","mass_back","area_hole"]);
   return (id, delta)=>{
-    if(!increaseOnly.has(id)) return false;
-    return delta >= 0; // only allow increases on the guarded set
+    if(!allowed.has(id)) return false;
+    if(increaseOnly.has(id)) return delta >= 0;
+    return true;
   };
 }
 
@@ -682,8 +696,17 @@ function fitWhatIfParameters(targets, opts={}){
   const baseRaw = readUiInputs();
   const whatRaw = readWhatIfRaw(baseRaw);
   const initial = whatRaw ? whatRaw : { ...baseRaw };
-  const adjustable = getAdjustableIds(initial);
-  const clampDirection = buildDirectionClamp(opts);
+  const adjustable = getAdjustableIds(initial).filter(id=>id !== "volume_air");
+  const restrictClamp = buildDirectionClamp(opts);
+  const stiffnessClamp = (id, delta)=>{
+    if(id === "stiffness_top" || id === "stiffness_back") return delta <= 0;
+    return true;
+  };
+  const clampDirection = (id, delta)=>{
+    if(!stiffnessClamp(id, delta)) return false;
+    if(restrictClamp && !restrictClamp(id, delta)) return false;
+    return true;
+  };
   const result = runCoordinateDescent(initial, adjustable, targets, { ...opts, clampDirection });
   return { ...result, baseRaw };
 }
