@@ -27,8 +27,8 @@ It serves as the **forward-model foundation** for the upcoming **Delta-Recipe So
 
 ### 🧭 Roadmap
 - [x] Forward 4-DOF solver + What-If visualization  
-- [ ] Inverse solver: fit existing guitars & compute delta recipes  
-- [ ] Plain-language recipe generator & sensitivity cards  
+- [x] Inverse solver: fit existing guitars & compute delta recipes  
+- [x] Plain-language recipe generator  
 - [ ] Documentation + white paper (v1)
 
 ---
