@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Monopole Mobility Calculator — Gore Jig Method</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+  <body>
+    <header class="card pad">
+      <h1>Monopole Mobility — Gore Jig Method</h1>
+      <div class="muted">
+        Sealed soundhole + muted strings → capture the uncoupled top monopole (f<sub>u</sub>).
+        Add a known test mass to the jig, record bridge deflection, and the calculator produces stiffness (K),
+        effective modal mass (M<sub>eff</sub>), and the standard mobility score.
+      </div>
+      <div class="sample-note badge">
+        Default dataset: Rick Molloy's OM (10/25/2025) — Spruce/SS, m = 1.02 kg, x = 0.18 mm, f<sub>u</sub> = 153 Hz
+      </div>
+    </header>
+
+  <main>
+    <section class="card pad controls">
+      <h2>Measurement Inputs</h2>
+      <div class="inputs">
+        <div class="slider-block">
+          <div class="slider-meta">
+            <span>Uncoupled top monopole f<sub>u</sub> (Hz)</span>
+            <span id="freq_val" class="badge">153.0 Hz</span>
+          </div>
+          <input id="freq" type="range" min="90" max="220" step="0.1" value="153" />
+        </div>
+
+        <div class="slider-block">
+          <div class="slider-meta">
+            <span>Bridge deflection under load (mm)</span>
+            <span id="deflection_val" class="badge">0.18 mm</span>
+          </div>
+          <input id="deflection" type="range" min="0.05" max="0.50" step="0.005" value="0.18" />
+        </div>
+
+        <div class="slider-block">
+          <div class="slider-meta">
+            <span>Test mass (kg)</span>
+            <span id="mass_val" class="badge">1.02 kg</span>
+          </div>
+          <input id="mass" type="range" min="0.30" max="1.80" step="0.01" value="1.02" />
+        </div>
+      </div>
+      <div class="actions">
+        <button id="reset">Reset to Gore OM sample</button>
+        <button id="copy" class="ghost">Copy results</button>
+      </div>
+      <details class="checklist" open>
+        <summary>Field checklist</summary>
+        <ul>
+          <li>Airtight seal over the soundhole before tapping.</li>
+          <li>Input deflection in mm, but jig dial readings are tiny — keep it elastic.</li>
+          <li>Mass must be in kilograms; no grams conversion here.</li>
+          <li>Load applied vertically at the bridge reference to avoid rocking.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="card pad results">
+      <div class="results-header">
+        <h2>Calculated Properties</h2>
+        <div id="status" class="status muted">Live: Rick Molloy OM (10/25/2025)</div>
+      </div>
+      <div class="result-grid">
+        <article class="result-card">
+          <div class="label">Top stiffness K</div>
+          <div id="stiffness" class="value">—</div>
+          <div class="unit">N/m</div>
+          <div class="note">K = m·g / x</div>
+        </article>
+        <article class="result-card">
+          <div class="label">Effective modal mass M<sub>eff</sub></div>
+          <div id="effMass" class="value">—</div>
+          <div class="unit">g</div>
+          <div class="note">M<sub>eff</sub> = K / (2πf)<sup>2</sup></div>
+        </article>
+        <article class="result-card highlighted">
+          <div class="label">Monopole mobility</div>
+          <div id="mobilityScore" class="value">—</div>
+          <div class="unit">score</div>
+          <div class="note">Matches legacy spreadsheet scale</div>
+        </article>
+        <article class="result-card">
+          <div class="label">Mobility (SI)</div>
+          <div id="mobilitySI" class="value">—</div>
+          <div class="unit">m/N·s</div>
+          <div class="note">Y = 1 / √(K·M<sub>eff</sub>)</div>
+        </article>
+      </div>
+      <div class="derived">
+        <div>
+          <div class="label">Deflection</div>
+          <div id="deflectionMeters" class="value">—</div>
+          <div class="unit">meters</div>
+        </div>
+        <div>
+          <div class="label">Stiffness × Mass product</div>
+          <div id="kmProduct" class="value">—</div>
+          <div class="unit">N·kg/m</div>
+        </div>
+      </div>
+      <div class="muted small">
+        Use Mobility &lt; 20 for lightly braced OM/000 builds; higher scores feel stiffer and respond slower.
+      </div>
+    </section>
+
+    <section class="card pad formulas">
+      <h2>SOP reference</h2>
+      <ol>
+        <li>Seal the soundhole, mute strings, tap + FFT for f<sub>u</sub>.</li>
+        <li>Mount jig, apply known mass m, record deflection x (mm) at the bridge.</li>
+        <li>The calculator converts x → meters, computes K, M<sub>eff</sub>, and the mobility score.</li>
+      </ol>
+      <p class="small muted">g = 9.8 m/s². Display scale uses grams for M<sub>eff</sub> to match the legacy worksheet.</p>
+    </section>
+  </main>
+
+  <script src="main.js" defer></script>
+</body>
+
+</html>
