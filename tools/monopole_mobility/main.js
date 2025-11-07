@@ -1,3 +1,11 @@
+/*
+© 2025 Rick Molloy. All rights reserved.
+
+This calculator implements the Gore-style monopole mobility jig workflow.
+Permission is granted to view and reference this source for educational purposes only.
+Redistribution, modification, or commercial use requires written consent from the author.
+*/
+
 const g = 9.8;
 const defaults = {
   name: "Rick Molloy's guitar: 10/5/25",

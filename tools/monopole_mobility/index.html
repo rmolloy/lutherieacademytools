@@ -1,3 +1,10 @@
+<!--
+© 2025 Rick Molloy. All rights reserved.
+
+This tool builds on the monopole mobility measurement workflow described by Trevor Gore.
+Permission is granted to view and reference this file for educational use only.
+No redistribution, modification, or commercial use without written consent from the author.
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -78,43 +85,53 @@
       <div class="result-grid">
         <article class="result-card">
           <div class="label">Top stiffness K</div>
-          <div id="stiffness" class="value">—</div>
-          <div class="unit">N/m</div>
+          <div class="value-row">
+            <div id="stiffness" class="value">—</div>
+            <span class="unit-inline">N/m</span>
+          </div>
           <div class="note">K = m·g / x</div>
         </article>
         <article class="result-card">
           <div class="label">Effective mass M<sub>eff</sub></div>
-          <div id="effMass" class="value">—</div>
-          <div class="unit">g</div>
+          <div class="value-row">
+            <div id="effMass" class="value">—</div>
+            <span class="unit-inline">g</span>
+          </div>
           <div class="note">M<sub>eff</sub> = K / (2πf)<sup>2</sup></div>
         </article>
         <article class="result-card">
           <div class="label">Monopole mobility</div>
-          <div id="mobilityScore" class="value">—</div>
-          <div class="unit">score</div>
+          <div class="value-row">
+            <div id="mobilityScore" class="value">—</div>
+            <span class="unit-inline">score</span>
+          </div>
           <div class="note">1000 / √(K · M<sub>eff</sub>)</div>
         </article>
       </div>
-      <div class="muted small">Use Mobility &lt; 20 for lightly braced OM/000 builds; higher scores feel stiffer.</div>
+      <div class="muted small">
+        Lower scores mean a stiffer top. Aim for ≈20 on a responsive OM/steel‑string build and ≈30 for classicals.
+      </div>
     </section>
 
     <section class="card pad formulas">
-      <h2>SOP reference</h2>
+      <h2>How to Measure</h2>
       <ol>
-        <li>Seal the soundhole, mute strings, tap + FFT for f<sub>u</sub>.</li>
-        <li>Mount jig, apply known mass m, record deflection x (mm) at the bridge.</li>
-        <li>The calculator converts x → meters, computes K, M<sub>eff</sub>, and the mobility score.</li>
+        <li>Seal the soundhole – Use tape or a food container lid to make it airtight.</li>
+        <li>Mute the strings, tap the top, and record the uncoupled top frequency (f<sub>u</sub>) with your FFT app.</li>
+        <li>Mount the mobility jig – Hang a known test mass (m) vertically over the bridge and measure deflection (x) in millimeters.</li>
+        <li>The deflection should be small but elastic — don’t crush the top.</li>
+        <li>Enter your readings above – The calculator converts x → meters, computes stiffness (K), effective modal mass (M<sub>eff</sub>), and mobility.</li>
+        <li>The score tells you how freely the top moves air.</li>
       </ol>
       <details class="checklist" open>
-        <summary>Field checklist</summary>
+        <summary>Field Notes</summary>
         <ul>
-          <li>Airtight seal over the soundhole before tapping.</li>
-          <li>Input deflection in mm, but jig dial readings are tiny — keep it elastic.</li>
-          <li>Mass must be in kilograms; no grams conversion here.</li>
-          <li>Load applied vertically at the bridge reference to avoid rocking.</li>
+          <li>Make sure the soundhole seal is airtight before tapping.</li>
+          <li>Input deflection in millimeters — most dial gauges read tiny movements.</li>
+          <li>Keep mass in kilograms (no grams conversion here).</li>
+          <li>Apply load vertically at the bridge; avoid rocking or twisting.</li>
         </ul>
       </details>
-      <p class="small muted">g = 9.8 m/s². Display scale uses grams for M<sub>eff</sub> to match the legacy worksheet.</p>
     </section>
   </main>
 
