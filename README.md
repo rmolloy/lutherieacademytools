@@ -6,6 +6,12 @@ It visualizes the interaction of **Air, Top, Back, and Rim modes**, showing coup
 
 ---
 
+### 🛠 Available Tools
+- `tools/4dof_model` — Coupled forward model + What-If simulator (1–4 DOF).
+- `tools/monopole_mobility` — Gore jig calculator for top stiffness, modal mass, and monopole mobility score (sealed soundhole workflow).
+
+---
+
 ### 🎸 Current Version
 The **What-If Simulator** (shown below) allows direct manipulation of mass, stiffness, damping, and air parameters with real-time frequency-response updates.  
 It serves as the **forward-model foundation** for the upcoming **Delta-Recipe Solver**, which will:
